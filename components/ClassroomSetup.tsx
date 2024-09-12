@@ -26,6 +26,7 @@ const ClassroomSetup: React.FC<Props> = ({ onSetup }) => {
           </label>
           <div className="mt-1">
             <input
+            required
               placeholder='0'
               min={1}
               type="number"
@@ -42,6 +43,7 @@ const ClassroomSetup: React.FC<Props> = ({ onSetup }) => {
         </label>
         <div>
           <input
+          required
             placeholder='0'
             min={1}
             type="number"

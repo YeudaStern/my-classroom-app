@@ -12,9 +12,8 @@ const StudentInput: React.FC<StudentInputProps> = ({ onAddStudent }) => {
   const [isFlashing, setIsFlashing] = useState(true);
 
   useEffect(() => {
-    // Stop flashing after 1 minute
-    const timeoutId = setTimeout(() => setIsFlashing(false), 10000); // 60000 ms = 1 minute
-    return () => clearTimeout(timeoutId); // Cleanup if the component unmounts
+    const timeoutId = setTimeout(() => setIsFlashing(false), 10000); 
+    return () => clearTimeout(timeoutId); 
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -51,7 +50,7 @@ const StudentInput: React.FC<StudentInputProps> = ({ onAddStudent }) => {
         </div>
       </div>
       <div>
-        <label className="block mb-1">האם יש קוצר ראייה?</label>
+        <label className="block mb-1">האם יש קוצר ראייה\שמיעה?</label>
         <div className="flex items-center">
           <button
             type="button"

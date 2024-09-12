@@ -29,7 +29,7 @@ const SeatingArrangement: React.FC<SeatingArrangementProps> = ({ arrangement }) 
                   ${student.hasPoorVision
                     ? 'bg-orange-900 text-orange-500'
                     : student.height === 'tall'
-                      ? 'bg-blue-900 text-blue-500'
+                      ? 'bg-gray-900 text-gray-400'
                       : student.height === 'short'
                         ? 'bg-fuchsia-900 text-fuchsia-500'
                         : 'bg-green-900 text-green-500'

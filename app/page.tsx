@@ -28,17 +28,17 @@ const Home: React.FC = () => {
   const [restrictedPairs, setRestrictedPairs] = useState<[string, string][]>([]);
   const route = useRouter()
 
+  // Check if there are user sign in and call to students and arrangements from the server
   useEffect(() => {
     if (user) {
-      console.log('Current user ID:', user.id);
       fetchData();
       fetchArrangements()
     }
   }, [user]);
 
+  // Check if there is no user sign in and reset all states
   useEffect(() => {
     if (!isSignedIn) {
-      // ריקון הנתונים לאחר יציאת המשתמש
       setStudents([]);
       setClassroomSetup(null);
       setSeatingArrangement(null);
@@ -47,6 +47,7 @@ const Home: React.FC = () => {
     }
   }, [isSignedIn]);
 
+// Fetch data of students from server
   const fetchData = async () => {
     try {
       const response = await fetch(`/api/students?userId=${user?.id}`);
@@ -71,29 +72,7 @@ const Home: React.FC = () => {
     }
   };
 
-  const fetchStudents = async () => {
-    if (!user?.id) {
-      setError('User ID is missing');
-      return;
-    }
-    try {
-      const response = await fetch(`/api/students?userId=${user?.id}`);
-      console.log('Response:', response);
-      if (!response.ok) throw new Error('Failed to fetch students');
-      const data = await response.json();
-      console.log('Data:', data);
-      if (data.students && Array.isArray(data.students)) {
-        setStudents(data.students);
-      } else {
-        console.error('Invalid data format:', data);
-        setError('Failed to load students. Please try again.');
-      }
-    } catch (err) {
-      console.error('Failed to fetch students:', err);
-      setError('Failed to load students. Please try again.');
-    }
-  };
-
+  // Fetch data of arrangements from server
   const fetchArrangements = async () => {
     try {
       const response = await fetch(`/api/arrangements?userId=${user?.id}`);
@@ -115,6 +94,7 @@ const Home: React.FC = () => {
     }
   };
 
+  // Add new student
   const handleAddStudent = useCallback(async (student: Student) => {
     if (!user?.id) {
       console.error('User ID is missing');
@@ -128,7 +108,7 @@ const Home: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...student, userId: user.id }),  // ודא ש-id של המשתמש נשלח
+        body: JSON.stringify({ ...student, userId: user.id }),
       });
 
       if (!response.ok) throw new Error('Failed to add student');
@@ -150,9 +130,9 @@ const Home: React.FC = () => {
       console.error('Failed to add student:', err);
       toast.error('כישלון בהוספת תלמיד😒, נסו שוב מאוחר יותר.');
     }
-  }, [user?.id]);  // ודא שיש מעקב אחרי user.id
+  }, [user?.id]);
 
-
+// Deliting a students
   const handleDeleteStudent = async (studentId: string) => {
     console.log('Deleting student with ID:', studentId);
     try {
@@ -181,15 +161,59 @@ const Home: React.FC = () => {
     }
   };
 
+  // About to handle the class room setup by follow the terms 
   const handleSetupClassroom = useCallback((setup: ClassroomSetupType) => {
     if (!students.length) {
       setError('אין תלמידים להגדיר כיתה.');
       return;
     }
+    
     const studentsPerTable = Math.ceil(students.length / setup.numTables);
 
-    if (studentsPerTable > 5) {
-      toast.warning('לא ניתן להגדיר מספר שולחנות קטן מדי. מספר התלמידים בכל שולחן יעלה על 5.', {
+    if (setup.numTables > students.length) {
+      toast.warning('מספר השולחנות גדול מדי ביחס לכמות התלמידים.', {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+      return;
+    }
+
+    if (studentsPerTable > setup.chairsPerTable) {
+      toast.warning('מספר השולחנות קטן מדי. יש יותר מדי תלמידים לכל שולחן.', {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+      return;
+    }
+
+    if (studentsPerTable > 6) {
+      toast.warning('לא ניתן להגדיר מספר שולחנות קטן מדי. מספר התלמידים בכל שולחן יעלה על 6.', {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+      return;
+    }
+
+    if (studentsPerTable < 2) {
+      toast.warning('מספר הכיסאות בשולחן קטן מדי. יש צורך בלפחות 2 כיסאות לכל שולחן.', {
         position: "top-center",
         autoClose: 5000,
         hideProgressBar: false,
@@ -215,6 +239,7 @@ const Home: React.FC = () => {
     }
   }, [students, restrictedPairs]);
 
+  // About to shuffle the arrangement after the handle setup class room
   const handleShuffle = useCallback(() => {
     if (classroomSetup && seatingArrangement) {
       try {
@@ -239,20 +264,7 @@ const Home: React.FC = () => {
     }
   }, [classroomSetup, seatingArrangement, previousArrangements, restrictedPairs]);
 
-  const isValidArrangement = (arrangement: SeatingArrangementType): boolean => {
-    for (const table of arrangement.tables) {
-      for (let i = 0; i < table.length - 1; i++) {
-        const pair = [table[i]._id, table[i + 1]._id];
-        if (restrictedPairs.some(([a, b]) =>
-          (a === pair[0] && b === pair[1]) || (a === pair[1] && b === pair[0])
-        )) {
-          return false;
-        }
-      }
-    }
-    return true;
-  };
-
+  // After shuffle save the current arrangements
   const saveArrangement = async (arrangement: SeatingArrangementType) => {
     try {
       const response = await fetch('/api/arrangements', {
@@ -269,7 +281,7 @@ const Home: React.FC = () => {
     }
   };
 
-
+// Check if the user connected
   const requireAuth = (action: () => void) => {
     if (isSignedIn) {
       action();
@@ -287,9 +299,9 @@ const Home: React.FC = () => {
   };
 
 
-
+// A bad UI 
   return (
-    <div className="container mx-auto p-4 text-white my-4">
+    <div className="container mx-auto p-4 md:px-4 text-white my-4">
       <h1 className="text-3xl font-bold mb-4 text-center border-b mx-auto w-[275px]">סידור תלמידים בכיתה</h1>
       {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">{error}</div>}
 
@@ -324,7 +336,6 @@ const Home: React.FC = () => {
             setRestrictedPairs={setRestrictedPairs}
           />
         </div>
-
         <div className='border-2 border-zinc-700 rounded-md p-6'>
           <h2 className="text-xl font-semibold mb-4 text-center ">סידור הישיבה</h2>
           <div className='text-center bg-gray-500 my-5 mx-auto w-80 text-white rounded-md'>לוח הכיתה</div>

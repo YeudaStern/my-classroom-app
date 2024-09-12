@@ -30,8 +30,8 @@ const StudentsList: React.FC<StudentsListProps> = ({ students, onDeleteStudent }
 
   const getBackgroundColor = (student: Student) => {
     if (student.hasPoorVision) return 'bg-orange-900 text-orange-500';
-    if (student.height === 'tall') return 'bg-blue-900 text-blue-500';
-    if (student.height === 'short') return 'bg-indigo-900 text-indigo-500';
+    if (student.height === 'tall') return 'bg-gray-900';
+    if (student.height === 'short') return 'bg-indigo-500 text-indigo-500';
     return 'bg-green-900 text-green-500';
   };
 
